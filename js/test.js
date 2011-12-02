@@ -1,35 +1,25 @@
 var scene;
 var renderer;
 var camera;
+var controls;
+var container;
+var clock;
+
 var WIDTH = 1024;
 var HEIGHT = 768;
 
 function setupScene() {
-    var $container = $('#container');
+    container = $('#container');
 
     renderer = new THREE.WebGLRenderer();
     
     scene = new THREE.Scene();
 
     renderer.setSize(WIDTH, HEIGHT);
+    
+    clock = new THREE.Clock();
 
-    $container.append(renderer.domElement);
-}
-
-function addSphere() {
-    var radius = 50;
-    var segments = 16;
-    var rings = 16;
-
-    var sphereMaterial = new THREE.MeshLambertMaterial({
-        color: 0xCC0000
-    });
-
-    var sphere = new THREE.Mesh(
-            new THREE.SphereGeometry(radius, segments, rings),
-            sphereMaterial);
-
-    scene.add(sphere);
+    container.append(renderer.domElement);
 }
 
 function addLights() {    
@@ -63,13 +53,27 @@ function addCamera() {
     scene.add(camera);
 }
 
+function addControls() {
+    controls = new THREE.FirstPersonControls( camera );
+    controls.movementSpeed = 500;
+    controls.domElement = container;
+}
+
+function animate() {
+    requestAnimationFrame( animate );
+    var delta = clock.getDelta();
+    controls.update(delta);
+    renderer.render( scene, camera );
+}
+
 function init() {
     setupScene();
-    //addSphere();
     addLights();
     addCamera();
+    addControls();
     
     var loader = new THREE.ColladaLoader();
+    
     loader.load(
             'http://open3dhub.com/download/ccb5e214fc44f8b5985456d4496f6086d8b799bc7963ba6b9b788194bf6c710b/GibsonGuitar.dae',
             /*'http://open3dhub.com/download/c7d6bae9872dc9730e7343eb36b02d21a4f1861522ed137f14d03712ddf970cf/COLLADA.dae',*/
@@ -77,12 +81,11 @@ function init() {
             /*'http://open3dhub.com/download/8bbe77a45c6125a9aa465258679463bbba89755cb2826f5524563bf00f9a1c08/cube_triangulate.dae',*/
             function colladaReady( collada ) {
         dae = collada.scene;
-        //dae.computeBoundingSphere();
         dae.scale = new THREE.Vector3(0.5, 0.5, 0.5);
         scene.add(dae);
-        console.log(collada);
-        renderer.render(scene, camera);
     });
+    
+    animate();
 }
 
 $(document).ready(init);
